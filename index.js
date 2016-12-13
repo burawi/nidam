@@ -51,7 +51,7 @@ var loadAppModules = function (app, extra) {
     bag.nidam = require('./helpers.js')(extra);
     forEachModule(function (moduleName) {
         bag[moduleName] = {
-            conf: fileOf(moduleName,'conf',extra);
+            conf: fileOf(moduleName,'conf',extra)
         }
         var moduleArgs = extra;
         moduleArgs[moduleName] = bag[moduleName];

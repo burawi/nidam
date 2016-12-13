@@ -8,7 +8,11 @@ var filePathOf = function (moduleName,fileName) {
 }
 
 var fileOf = function (moduleName,fileName,args) {
-    return require(filePathOf(moduleName, fileName))(args);
+    try {
+        return require(filePathOf(moduleName, fileName))(args);
+    } catch (e) {
+        return null;
+    }
 }
 
 var forEachModule = function (fn) {

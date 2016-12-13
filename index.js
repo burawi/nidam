@@ -11,7 +11,8 @@ var fileOf = function (moduleName,fileName,args) {
     try {
         return require(filePathOf(moduleName, fileName))(args);
     } catch (e) {
-        return null;
+        console.error(e.message);
+        return function(){};
     }
 }
 

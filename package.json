@@ -1,6 +1,6 @@
 {
   "name": "nidam",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "fullstack modular framework to use with express",
   "main": "index.js",
   "scripts": {

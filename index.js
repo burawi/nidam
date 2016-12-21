@@ -1,5 +1,5 @@
 var express = require('express');
-var Layout = require('pug-layout');
+var pl = require('pug-layout');
 var fs = require('fs');
 var path = require('path');
 
@@ -42,6 +42,22 @@ var loadCommonFiles = function(fileName, extra) {
     return files;
 }
 
+var getModulePages = function (moduleName) {
+    var res = {};
+    try {
+        var pagesDir = fs.readdirSync(path.resolve('.', 'app_modules', moduleName, "pages"));
+        pagesDir.forEach(function(element) {
+            var stat = fs.lstatSync(path.resolve('.', 'app_modules', moduleName, element));
+            if (stat.isDirectory()) {
+            } else if (stat.isFile()) {
+                try {
+                    res.push(new pl.Page(path.resolve('.', 'app_modules', moduleName, element)))
+                } catch (e) { }
+            }
+        });
+    } catch (e) { }
+}
+
 var loadModule = function(moduleName, bag) {
     var module = {
         prefix: '/' + moduleName,
@@ -54,18 +70,19 @@ var loadModule = function(moduleName, bag) {
 var loadAppModules = function(app, extra) {
     var bag = extra;
     bag.nidam = require('./helpers.js')(extra);
+    bag.app = app;
     forEachModule(function(moduleName) {
         bag[moduleName] = {
-            conf: fileOf(moduleName, 'conf', extra)
+            conf: fileOf(moduleName, 'conf', extra),
+            pages: getModulePages(moduleName)
         }
         var moduleArgs = extra;
         moduleArgs[moduleName] = bag[moduleName];
         bag[moduleName].middlewares = fileOf(moduleName, 'middlewares', moduleArgs);
         bag[moduleName].helpers = fileOf(moduleName, 'helpers', moduleArgs);
     });
-    bag.app = app;
+    bag.root = bag[''];
     delete bag[''];
-    bag.app = app;
     var modules = [];
     forEachModule(function(moduleName) {
         modules.push(loadModule(moduleName, bag));
@@ -79,7 +96,7 @@ module.exports = {
         if (layouts !== undefined) {
             for (var layout in layouts) {
                 if (layouts.hasOwnProperty(layout)) {
-                    layouts[layout] = new Layout(layouts[layout]);
+                    layouts[layout] = new pl.Layout(layouts[layout]);
                     forEachModule(function(moduleName) {
                         try {
                             layouts[layout].includeAtTop(filePathOf(moduleName, 'components.pug'))

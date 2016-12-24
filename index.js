@@ -130,6 +130,9 @@ module.exports = {
                     P: loadViewsOf(moduleName, 'pages')
                 }
             };
+            if(bag[moduleName].conf.prefix === undefined){
+                bag[moduleName].conf.prefix = moduleName;
+            }
         });
         checkpointArgs = bag;
         forEachModule(function (moduleName) {
@@ -139,11 +142,7 @@ module.exports = {
         });
         forEachModule(function (moduleName) {
             require(path.resolve('.', 'app_modules', moduleName))(bag);
-            var prefix = bag[moduleName].conf.prefix;
-            if(prefix === undefined){
-                prefix = moduleName;
-            }
-            app.use(prefix, express.static(path.resolve('.', 'app_modules', moduleName, 'client')));
+            app.use(bag[moduleName].conf.prefix, express.static(path.resolve('.', 'app_modules', moduleName, 'client')));
         });
     }
 }

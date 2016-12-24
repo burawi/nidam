@@ -20,10 +20,14 @@ var filePathOf = function(moduleName, fileName) {
     return path.resolve('.', 'app_modules', moduleName, fileName);
 }
 
-var fileOf = function(moduleName, fileName, args) {
+var fileOf = function(moduleName, fileName, ...args) {
     var pathToFile = filePathOf(moduleName, fileName);
     if (fs.existsSync(pathToFile)) {
-        return require(pathToFile)(args);
+        if(args[0] == 'JSON'){
+            return require(pathToFile);
+        }else {
+            return require(pathToFile)(...args);
+        }
     }else {
         return function(){};
     }
@@ -53,7 +57,7 @@ var loadViewsOf = function (moduleName, type) {
                 view.includeAtTop(pathToFile);
             });
         });
-        views.push(view);
+        views[path.basename(pathToFile,'.pug')] = view;
     });
     return views;
 }
@@ -121,10 +125,11 @@ module.exports = {
         var bag = {};
         bag.app = app;
         bag.E = args;
+        bag.nidam = require('./F.js')(bag.E);
         var checkpointArgs = bag;
         forEachModule(function (moduleName) {
             bag[moduleName] = {
-                conf: fileOf(moduleName,'conf',checkpointArgs),
+                conf: fileOf(moduleName,'conf.js', checkpointArgs),
                 V: {
                     L: loadViewsOf(moduleName, 'layouts'),
                     P: loadViewsOf(moduleName, 'pages')
@@ -136,12 +141,13 @@ module.exports = {
         });
         checkpointArgs = bag;
         forEachModule(function (moduleName) {
-            bag[moduleName] = {
-                F: fileOf(moduleName,'F',checkpointArgs)
-            };
+            bag[moduleName].F = fileOf(moduleName,'F.js', checkpointArgs, bag[moduleName].conf);
         });
         forEachModule(function (moduleName) {
-            require(path.resolve('.', 'app_modules', moduleName))(bag);
+            var pathToModule = path.resolve('.', 'app_modules', moduleName)
+            if (fs.existsSync(pathToModule + '/index.js')) {
+                require(pathToModule)(bag, bag[moduleName]);
+            }
             app.use(bag[moduleName].conf.prefix, express.static(path.resolve('.', 'app_modules', moduleName, 'client')));
         });
     }

@@ -13,11 +13,6 @@ module.exports = function (extra) {
             };
             params = Object.assign({}, params, extra, data);
             return params;
-        },
-        render: function (req, res, layout, page, locals) {
-            var locals = exports.viewParams(req, locals);
-            var html = extra.layouts[layout].render(page,locals);
-            res.send(html);
         }
     };
 

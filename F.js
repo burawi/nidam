@@ -13,6 +13,11 @@ module.exports = function (extra) {
             };
             params = Object.assign({}, params, extra, data);
             return params;
+        },
+        render: function (req, res, page, data) {
+            var params = exports.viewParams(req, data);
+            var html = page.render(params);
+            res.send(html);
         }
     };
 

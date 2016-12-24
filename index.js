@@ -125,7 +125,7 @@ module.exports = {
         var bag = {};
         bag.app = app;
         bag.E = args;
-        bag.nidam = require('./F.js')(bag.E);
+        bag.nidam = require('./F.js')(bag);
         var checkpointArgs = bag;
         forEachModule(function (moduleName) {
             bag[moduleName] = {
@@ -148,7 +148,7 @@ module.exports = {
             if (fs.existsSync(pathToModule + '/index.js')) {
                 require(pathToModule)(bag, bag[moduleName]);
             }
-            app.use(bag[moduleName].conf.prefix, express.static(path.resolve('.', 'app_modules', moduleName, 'client')));
+            app.use('/'+bag[moduleName].conf.prefix, express.static(path.resolve('.', 'app_modules', moduleName, 'client')));
         });
     }
 }

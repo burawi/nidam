@@ -2,6 +2,19 @@ var express = require('express');
 var pl = require('pug-layout');
 var fs = require('fs');
 var path = require('path');
+var capitalize = require('capitalize');
+
+var forEachModule = function(fn) {
+    var modulesDir = fs.readdirSync('./app_modules');
+    modulesDir.forEach(function(element) {
+        var stat = fs.lstatSync(path.resolve('.', 'app_modules', element));
+        if (stat.isDirectory()) {
+            fn(element);
+        } else if (stat.isFile()) {
+            // console.log(element+': belongs to main module');
+        }
+    });
+}
 
 var filePathOf = function(moduleName, fileName) {
     return path.resolve('.', 'app_modules', moduleName, fileName);
@@ -16,24 +29,37 @@ var fileOf = function(moduleName, fileName, args) {
     }
 }
 
-var forEachModule = function(fn) {
-    var modulesDir = fs.readdirSync('./app_modules');
-    fn('');
-    modulesDir.forEach(function(element) {
-        var stat = fs.lstatSync(path.resolve('.', 'app_modules', element));
-        if (stat.isDirectory()) {
-            fn(element);
-        } else if (stat.isFile()) {
-            // console.log(element+': belongs to main module');
-        }
+var forEachFileOf = function (moduleName, dirName, fn) {
+    var dirPath = path.resolve('.', 'app_modules', moduleName, dirName);
+    if(fs.existsSync(dirPath)){
+        var filesDir = fs.readdirSync(path.resolve('.', 'app_modules', moduleName, dirName));
+        filesDir.forEach(function(element) {
+            var pathToElement = path.resolve('.', 'app_modules', moduleName, dirName, element);
+            var stat = fs.lstatSync(pathToElement);
+            if (stat.isFile()) {
+                fn(element,pathToElement);
+            }
+        });
+    }
+}
+
+var loadViewsOf = function (moduleName, type) {
+    var views = {};
+    forEachFileOf(moduleName, 'views/'+type, function (fileName,pathToFile) {
+        var plObjectName = capitalize(type).slice(0, -1);
+        var view = new pl[plObjectName](pathToFile)
+        forEachModule(function (moduleName) {
+            forEachFileOf(moduleName,'views/components',function (fileName,pathToFile) {
+                view.includeAtTop(pathToFile);
+            });
+        });
+        views.push(view);
     });
+    return views;
 }
 
 var loadCommonFiles = function(fileName, extra) {
     var files = {};
-    try {
-        files.root = fileOf('', fileName, extra);
-    } catch (e) {}
     forEachModule(function(moduleName) {
         try {
             files[moduleName] = fileOf(moduleName, fileName, extra);
@@ -91,26 +117,30 @@ var loadAppModules = function(app, extra) {
 }
 
 module.exports = {
-    use: function(app, extra, layouts) {
-        // Configure Layouts
-        if (layouts !== undefined) {
-            for (var layout in layouts) {
-                if (layouts.hasOwnProperty(layout)) {
-                    layouts[layout] = new pl.Layout(layouts[layout]);
-                    forEachModule(function(moduleName) {
-                        try {
-                            layouts[layout].includeAtTop(filePathOf(moduleName, 'components.pug'))
-                        } catch (e) {}
-                    });
+    use: function(app, args) {
+        var bag = {};
+        bag.app = app;
+        bag.E = args;
+        var checkpointArgs = bag;
+        forEachModule(function (moduleName) {
+            bag[moduleName] = {
+                conf: fileOf(moduleName,'conf',checkpointArgs),
+                V: {
+                    L: loadViewsOf(moduleName, 'layouts'),
+                    P: loadViewsOf(moduleName, 'pages')
                 }
-            }
-            extra.layouts = layouts;
-        }
-
-        var appModules = loadAppModules(app, extra);
-        appModules.forEach(function(module) {
-            app.use(module.prefix, module.router);
-            app.use(module.prefix, express.static(module.client));
+            };
+        });
+        checkpointArgs = bag;
+        forEachModule(function (moduleName) {
+            bag[moduleName] = {
+                F: fileOf(moduleName,'F',checkpointArgs)
+            };
+        });
+        forEachModule(function (moduleName) {
+            require(path.resolve('.', 'app_modules', moduleName))(bag);
+            var prefix = bag[moduleName].conf.prefix;
+            app.use(prefix, express.static(path.resolve('.', 'app_modules', moduleName, 'client')));
         });
     }
 }

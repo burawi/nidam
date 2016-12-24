@@ -140,6 +140,9 @@ module.exports = {
         forEachModule(function (moduleName) {
             require(path.resolve('.', 'app_modules', moduleName))(bag);
             var prefix = bag[moduleName].conf.prefix;
+            if(prefix === undefined){
+                prefix = moduleName;
+            }
             app.use(prefix, express.static(path.resolve('.', 'app_modules', moduleName, 'client')));
         });
     }

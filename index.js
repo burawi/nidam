@@ -3,6 +3,8 @@ var pl = require('pug-layout');
 var fs = require('fs');
 var path = require('path');
 var capitalize = require('capitalize');
+var expressOrigin = require('express-origin');
+var polyglot = require('express-polyglot');
 
 var loadModules = function () {
     // Sorting was inspired by this SO answer: http://stackoverflow.com/a/1069840/2952266
@@ -72,36 +74,54 @@ var loadViewsOf = function (moduleName, type, modules) {
     return views;
 }
 
+function configureApp(app) {
+    app.use(expressOrigin());
+
+    app.use(polyglot.load);
+    app.use('/locale', polyglot.switch);
+}
+
+function getBag(app, args) {
+    var modules = loadModules();
+    var bag = {};
+    bag.app = app;
+    bag.E = args;
+    bag.nidam = require('./F.js')(bag);
+    var checkpointArgs = bag;
+    modules.forEach(function (moduleName) {
+        bag[moduleName] = {
+            conf: fileOf(moduleName,'conf.js', checkpointArgs),
+            V: {
+                L: loadViewsOf(moduleName, 'layouts', modules),
+                P: loadViewsOf(moduleName, 'pages', modules)
+            }
+        };
+        if(bag[moduleName].conf.prefix === undefined){
+            bag[moduleName].conf.prefix = moduleName;
+        }
+    });
+    checkpointArgs = bag;
+    modules.forEach(function (moduleName) {
+        bag[moduleName].F = fileOf(moduleName,'F.js', checkpointArgs, bag[moduleName].conf);
+    });
+    return bag;
+}
+
+function load(app, bag) {
+    var modules = loadModules();
+    modules.forEach(function (moduleName) {
+        var pathToModule = path.resolve('.', 'app_modules', moduleName)
+        if (fs.existsSync(pathToModule + '/index.js')) {
+            require(pathToModule)(bag, bag[moduleName]);
+        }
+        app.use('/'+bag[moduleName].conf.prefix, express.static(path.resolve('.', 'app_modules', moduleName, 'client')));
+    });
+}
+
 module.exports = {
     use: function(app, args) {
-        var bag = {};
-        bag.app = app;
-        bag.E = args;
-        bag.nidam = require('./F.js')(bag);
-        var checkpointArgs = bag;
-        var modules = loadModules();
-        modules.forEach(function (moduleName) {
-            bag[moduleName] = {
-                conf: fileOf(moduleName,'conf.js', checkpointArgs),
-                V: {
-                    L: loadViewsOf(moduleName, 'layouts', modules),
-                    P: loadViewsOf(moduleName, 'pages', modules)
-                }
-            };
-            if(bag[moduleName].conf.prefix === undefined){
-                bag[moduleName].conf.prefix = moduleName;
-            }
-        });
-        checkpointArgs = bag;
-        modules.forEach(function (moduleName) {
-            bag[moduleName].F = fileOf(moduleName,'F.js', checkpointArgs, bag[moduleName].conf);
-        });
-        modules.forEach(function (moduleName) {
-            var pathToModule = path.resolve('.', 'app_modules', moduleName)
-            if (fs.existsSync(pathToModule + '/index.js')) {
-                require(pathToModule)(bag, bag[moduleName]);
-            }
-            app.use('/'+bag[moduleName].conf.prefix, express.static(path.resolve('.', 'app_modules', moduleName, 'client')));
-        });
+        configureApp(app);
+        var bag = getBag(app, args);
+        load(app, bag);
     }
 }

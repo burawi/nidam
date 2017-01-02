@@ -8,8 +8,6 @@ module.exports = function (extra) {
         viewParams: function (req, data) {
             var params = {
                 req: req,
-                authenticated: (req.user) ? true : false,
-                origin: exports.origin(req.baseUrl+req.path),
             };
             params = Object.assign({}, params, extra, data);
             return params;

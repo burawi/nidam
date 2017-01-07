@@ -27,6 +27,7 @@
     "path": "^0.12.7",
     "pug-layout": "^1.0.0",
     "express-polyglot": "",
-    "express-origin": ""
+    "express-origin": "",
+    "capitalize": "",
   }
 }

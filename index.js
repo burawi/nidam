@@ -74,11 +74,11 @@ var loadViewsOf = function (moduleName, type, modules) {
     return views;
 }
 
-function configureApp(app) {
-    app.use(expressOrigin());
-
-    app.use(polyglot.load);
-    app.use('/locale', polyglot.switch);
+function configureApp(app, options) {
+    if(options.polyglot.use){
+        app.use(polyglot.load);
+        app.use('/locale', polyglot.switch);
+    }
 }
 
 function getBag(app, args) {
@@ -119,8 +119,8 @@ function load(app, bag) {
 }
 
 module.exports = {
-    use: function(app, args) {
-        configureApp(app);
+    use: function(app, args, options) {
+        configureApp(app, options);
         var bag = getBag(app, args);
         load(app, bag);
     }

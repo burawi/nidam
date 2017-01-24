@@ -1,33 +1,33 @@
 {
-    "name": "nidam",
-    "version": "1.2.1",
-    "description": "fullstack modular framework to use with express",
-    "main": "index.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/burawi/nidam.git"
-    },
-    "keywords": [
-        "fullstack",
-        "express",
-        "nodejs",
-        "modular"
-    ],
-    "author": "Abu Rawi",
-    "license": "ISC",
-    "bugs": {
-        "url": "https://github.com/burawi/nidam/issues"
-    },
-    "homepage": "https://github.com/burawi/nidam#readme",
-    "dependencies": {
-        "express": "^4.14.0",
-        "path": "^0.12.7",
-        "pug-layout": "^1.0.0",
-        "express-polyglot": "",
-        "express-origin": "",
-        "capitalize": ""
-    }
+  "name": "nidam",
+  "version": "1.2.2",
+  "description": "fullstack modular framework to use with express",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/burawi/nidam.git"
+  },
+  "keywords": [
+    "fullstack",
+    "express",
+    "nodejs",
+    "modular"
+  ],
+  "author": "Abu Rawi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/burawi/nidam/issues"
+  },
+  "homepage": "https://github.com/burawi/nidam#readme",
+  "dependencies": {
+    "express": "^4.14.0",
+    "path": "^0.12.7",
+    "pug-layout": "^1.0.0",
+    "express-polyglot": "",
+    "express-origin": "",
+    "capitalize": ""
+  }
 }

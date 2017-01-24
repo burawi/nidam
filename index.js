@@ -102,7 +102,7 @@ function getBag(app, args) {
     });
     checkpointArgs = bag;
     modules.forEach(function (moduleName) {
-        bag[moduleName].F = fileOf(moduleName,'F.js', checkpointArgs, bag[moduleName].conf);
+        bag[moduleName].F = fileOf(moduleName,'F.js', checkpointArgs, bag[moduleName].conf, bag[moduleName].V);
     });
     return bag;
 }
